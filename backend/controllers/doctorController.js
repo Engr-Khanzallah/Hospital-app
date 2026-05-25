@@ -33,7 +33,8 @@ export const getDoctors = async (req, res) => {
 }
 
 export const getDoctor = async (req, res) => {
-  const doctor = await Doctor.findById(req.params.id).populate('department', 'name icon')
+  const doctor = await Doctor.findById(req.params.id)
+    .populate('department', 'name icon')
   if (!doctor) {
     return res.status(404).json({ success: false, message: 'Doctor not found' })
   }
@@ -49,7 +50,10 @@ export const createDoctor = async (req, res) => {
 
   const exists = await Doctor.findOne({ email })
   if (exists) {
-    return res.status(400).json({ success: false, message: 'Doctor email already exists' })
+    return res.status(400).json({
+      success: false,
+      message: 'Doctor email already exists'
+    })
   }
 
   const doctorData = {
@@ -69,8 +73,9 @@ export const createDoctor = async (req, res) => {
     availableSlots: availableSlots ? JSON.parse(availableSlots) : []
   }
 
+  // Cloudinary gives full HTTPS URL in req.file.path
   if (req.file) {
-    doctorData.image = `http://localhost:5000/uploads/${req.file.filename}`
+    doctorData.image = req.file.path
     doctorData.imagePublicId = req.file.filename
   }
 
@@ -91,14 +96,20 @@ export const updateDoctor = async (req, res) => {
   const updateData = { ...req.body }
 
   if (req.body.qualification && !Array.isArray(req.body.qualification)) {
-    updateData.qualification = req.body.qualification.split(',').map(q => q.trim())
+    updateData.qualification = req.body.qualification
+      .split(',')
+      .map(q => q.trim())
   }
   if (req.body.availableSlots && typeof req.body.availableSlots === 'string') {
     updateData.availableSlots = JSON.parse(req.body.availableSlots)
   }
 
+  // If new image uploaded, delete old one from Cloudinary first
   if (req.file) {
-    updateData.image = `http://localhost:5000/uploads/${req.file.filename}`
+    if (doctor.imagePublicId) {
+      await cloudinary.uploader.destroy(doctor.imagePublicId)
+    }
+    updateData.image = req.file.path
     updateData.imagePublicId = req.file.filename
   }
 
@@ -120,6 +131,12 @@ export const deleteDoctor = async (req, res) => {
   if (!doctor) {
     return res.status(404).json({ success: false, message: 'Doctor not found' })
   }
+
+  // Delete image from Cloudinary when doctor is deleted
+  if (doctor.imagePublicId) {
+    await cloudinary.uploader.destroy(doctor.imagePublicId)
+  }
+
   await doctor.deleteOne()
   res.json({ success: true, message: 'Doctor deleted successfully' })
 }
