@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+
+# environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# logs
+logs/
+*.log
+npm-debug.log*
+
+# uploaded files (if patients/doctor images, reports, PDFs are stored locally)
+uploads/
+public/uploads/
+
+# temp files
+tmp/
+temp/
+
+# build output (if using TypeScript or transpiling)
+dist/
+build/
+
+# test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
