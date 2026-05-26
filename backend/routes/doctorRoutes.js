@@ -1,5 +1,12 @@
 import express from 'express'
-import { getDoctors, getDoctor, createDoctor, updateDoctor, deleteDoctor, getFeaturedDoctors } from '../controllers/doctorController.js'
+import {
+  getDoctors,
+  getDoctor,
+  createDoctor,
+  updateDoctor,
+  deleteDoctor,
+  getFeaturedDoctors
+} from '../controllers/doctorController.js'
 import { protect, adminOnly } from '../middleware/auth.js'
 import { upload } from '../config/cloudinary.js'
 

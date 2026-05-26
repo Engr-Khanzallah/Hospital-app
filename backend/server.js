@@ -21,14 +21,17 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 
+// CORS — allow all origins for now
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: '*',
   credentials: true
 }))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
+// Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/doctors', doctorRoutes)
 app.use('/api/appointments', appointmentRoutes)
@@ -37,23 +40,36 @@ app.use('/api/departments', departmentRoutes)
 app.use('/api/contact', contactRoutes)
 app.use('/api/admin', adminRoutes)
 
-app.get('/', (req, res) => res.json({ message: 'Hospital API Running' }))
+// Health check — Leapcell pings this
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Hospital API Running',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  })
+})
 
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack)
+  console.error('Global error:', err.message)
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || 'Internal Server Error'
   })
 })
 
-const PORT = process.env.PORT || 5000
+// Connect MongoDB and start server
+const PORT = process.env.PORT || 8080
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log('MongoDB Connected')
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+    console.log('✅ MongoDB Connected')
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ Server running on port ${PORT}`)
+      console.log(`✅ Environment: ${process.env.NODE_ENV}`)
+    })
   })
   .catch(err => {
-    console.error('MongoDB connection error:', err)
+    console.error('❌ MongoDB connection error:', err.message)
     process.exit(1)
   })
