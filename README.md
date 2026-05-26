@@ -169,7 +169,7 @@ npm run dev
 npm start
 ```
 
-Backend runs on: `http://localhost:5000`
+Backend runs on: `https://ospital-app-engr-khanzallah684-hgd3f2ea.leapcell.dev`
 
 ---
 
@@ -198,7 +198,7 @@ VITE_API_URL=http://localhost:5000/api
 npm run dev
 ```
 
-Frontend runs on: `http://localhost:5173`
+Frontend runs on: `https://medicare-hospital-app.netlify.app/`
 
 ---
 
