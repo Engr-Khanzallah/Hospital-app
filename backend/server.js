@@ -51,31 +51,27 @@ app.use((err, req, res, next) => {
   })
 })
 
-let cachedDb = null
+let isConnected = false
 
 const connectDB = async () => {
-  if (cachedDb && mongoose.connection.readyState === 1) {
-    return
-  }
+  if (isConnected && mongoose.connection.readyState === 1) return
   await mongoose.connect(process.env.MONGODB_URI, {
     serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
     bufferCommands: false
   })
-  cachedDb = mongoose.connection
+  isConnected = true
   console.log('✅ MongoDB Connected')
 }
 
-// Start server for local development
-const PORT = process.env.PORT || 5000
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
+    const PORT = process.env.PORT || 5000
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`✅ Server running on port ${PORT}`)
     })
   })
   .catch(err => {
-    console.error('❌ MongoDB error:', err.message)
+    console.error('❌ Error:', err.message)
     process.exit(1)
   })
 
