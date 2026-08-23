@@ -51,8 +51,8 @@ app.use((err, req, res, next) => {
   })
 })
 
+// MongoDB connection
 let isConnected = false
-
 const connectDB = async () => {
   if (isConnected && mongoose.connection.readyState === 1) return
   await mongoose.connect(process.env.MONGODB_URI, {
@@ -63,16 +63,24 @@ const connectDB = async () => {
   console.log('✅ MongoDB Connected')
 }
 
-connectDB()
-  .then(() => {
-    const PORT = process.env.PORT || 5000
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`✅ Server running on port ${PORT}`)
+// ✅ KEY FIX — Check if running locally or on Vercel
+if (process.env.NODE_ENV !== 'production') {
+  // LOCAL — use app.listen()
+  connectDB()
+    .then(() => {
+      const PORT = process.env.PORT || 5000
+      app.listen(PORT, () => {
+        console.log(`✅ Server running on port ${PORT}`)
+      })
     })
-  })
-  .catch(err => {
-    console.error('❌ Error:', err.message)
-    process.exit(1)
-  })
+    .catch(err => {
+      console.error('❌ Error:', err.message)
+      process.exit(1)
+    })
+} else {
+  // VERCEL — connect to DB on startup
+  connectDB().catch(err => console.error('❌ DB Error:', err.message))
+}
 
+// ✅ MUST export default for Vercel serverless
 export default app
