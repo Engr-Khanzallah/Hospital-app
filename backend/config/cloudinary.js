@@ -1,12 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary'
 import multer from 'multer'
 import path from 'path'
-import { fileURLToPath } from 'url'
-import fs from 'fs'
 import { Readable } from 'stream'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,13 +9,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-// Create local uploads folder as temp storage
-const uploadDir = path.join(__dirname, '../uploads')
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true })
-}
-
-// Use memory storage — upload buffer directly to Cloudinary
+// Use memory storage only — NO local file system (needed for Vercel)
 const storage = multer.memoryStorage()
 
 const upload = multer({
@@ -35,7 +24,6 @@ const upload = multer({
   }
 })
 
-// Helper function to upload buffer to Cloudinary
 const uploadToCloudinary = (buffer, filename) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
