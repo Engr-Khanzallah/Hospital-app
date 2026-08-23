@@ -4,6 +4,8 @@ dotenv.config()
 import express from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import 'express-async-errors'
 
 import authRoutes from './routes/authRoutes.js'
@@ -14,7 +16,14 @@ import departmentRoutes from './routes/departmentRoutes.js'
 import contactRoutes from './routes/contactRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const app = express()
+
+// ===============================
+// CORS
+// ===============================
 
 app.use(cors({
   origin: '*',
@@ -24,63 +33,202 @@ app.use(cors({
 }))
 
 app.options('*', cors())
+
+// ===============================
+// BODY PARSER
+// ===============================
+
 app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+app.use(express.urlencoded({
+  extended: true,
+  limit: '10mb'
+}))
 
-app.use('/api/auth', authRoutes)
-app.use('/api/doctors', doctorRoutes)
-app.use('/api/appointments', appointmentRoutes)
-app.use('/api/users', userRoutes)
-app.use('/api/departments', departmentRoutes)
-app.use('/api/contact', contactRoutes)
-app.use('/api/admin', adminRoutes)
+// ===============================
+// UPLOADS
+// ===============================
 
-app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'Hospital API Running',
-    status: 'healthy',
-    timestamp: new Date().toISOString()
-  })
-})
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'))
+)
 
-app.use((err, req, res, next) => {
-  console.error('Error:', err.message)
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error'
-  })
-})
+// ===============================
+// MONGODB CONNECTION
+// ===============================
 
-// MongoDB connection with caching for serverless
-let isConnected = false
+let dbConnectionPromise = null
 
 const connectDB = async () => {
-  if (isConnected && mongoose.connection.readyState === 1) return
-  await mongoose.connect(process.env.MONGODB_URI, {
-    serverSelectionTimeoutMS: 10000,
-    bufferCommands: false
-  })
-  isConnected = true
-  console.log('✅ MongoDB Connected')
+
+  // Already connected
+  if (mongoose.connection.readyState === 1) {
+    return
+  }
+
+  // Connection already in progress
+  if (dbConnectionPromise) {
+    await dbConnectionPromise
+    return
+  }
+
+  // Check environment variable
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is missing')
+  }
+
+  console.log('🔄 Connecting to MongoDB...')
+
+  dbConnectionPromise = mongoose.connect(
+    process.env.MONGODB_URI,
+    {
+      serverSelectionTimeoutMS: 10000
+    }
+  )
+
+  try {
+
+    await dbConnectionPromise
+
+    console.log('✅ MongoDB Connected')
+
+  } catch (error) {
+
+    dbConnectionPromise = null
+
+    console.error(
+      '❌ MongoDB connection error:',
+      error.message
+    )
+
+    throw error
+  }
 }
 
-// ✅ KEY FIX — only listen locally, NOT on Vercel
-if (process.env.VERCEL !== '1') {
+// ===============================
+// DATABASE MIDDLEWARE
+// ===============================
+
+// IMPORTANT:
+// Make sure MongoDB is connected BEFORE
+// any API route tries to use User.findOne(),
+// User.create(), etc.
+
+app.use(async (req, res, next) => {
+
+  try {
+
+    await connectDB()
+
+    next()
+
+  } catch (error) {
+
+    console.error(
+      '❌ Database connection failed:',
+      error.message
+    )
+
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed'
+    })
+  }
+})
+
+// ===============================
+// ROUTES
+// ===============================
+
+app.use('/api/auth', authRoutes)
+
+app.use('/api/doctors', doctorRoutes)
+
+app.use('/api/appointments', appointmentRoutes)
+
+app.use('/api/users', userRoutes)
+
+app.use('/api/departments', departmentRoutes)
+
+app.use('/api/contact', contactRoutes)
+
+app.use('/api/admin', adminRoutes)
+
+// ===============================
+// HEALTH CHECK
+// ===============================
+
+app.get('/', (req, res) => {
+
+  res.status(200).json({
+
+    message: 'Hospital API Running',
+
+    status: 'healthy',
+
+    timestamp: new Date().toISOString()
+
+  })
+
+})
+
+// ===============================
+// ERROR HANDLER
+// ===============================
+
+app.use((err, req, res, next) => {
+
+  console.error('Error:', err.message)
+
+  res.status(err.statusCode || 500).json({
+
+    success: false,
+
+    message:
+      err.message ||
+      'Internal Server Error'
+
+  })
+
+})
+
+// ===============================
+// LOCAL DEVELOPMENT
+// ===============================
+
+if (process.env.NODE_ENV !== 'production') {
+
   connectDB()
     .then(() => {
-      const PORT = process.env.PORT || 5000
-      app.listen(PORT, () => {
-        console.log(`✅ Server running on port ${PORT}`)
-      })
+
+      const PORT =
+        process.env.PORT || 5000
+
+      app.listen(
+        PORT,
+        '0.0.0.0',
+        () => {
+
+          console.log(
+            `✅ Server running on port ${PORT}`
+          )
+
+        }
+      )
+
     })
-    .catch(err => {
-      console.error('❌ Error:', err.message)
-      process.exit(1)
+    .catch((error) => {
+
+      console.error(
+        '❌ Failed to start server:',
+        error.message
+      )
+
     })
-} else {
-  // On Vercel — connect to DB without listen
-  connectDB().catch(err => console.error('❌ DB Error:', err.message))
 }
 
-// ✅ MUST export for Vercel serverless
+// ===============================
+// VERCEL
+// ===============================
+
 export default app
