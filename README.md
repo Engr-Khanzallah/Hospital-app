@@ -169,7 +169,7 @@ npm run dev
 npm start
 ```
 
-Backend runs on: `https://ospital-app-engr-khanzallah684-hgd3f2ea.leapcell.dev`
+Backend runs on: `https://hospital-backend-app.vercel.app/`
 
 ---
 
