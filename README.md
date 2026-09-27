@@ -198,7 +198,7 @@ VITE_API_URL=http://localhost:5000/api
 npm run dev
 ```
 
-Frontend runs on: `https://medicare-hospital-app.netlify.app/`
+## Frontend runs on: 
 
 ---
 
