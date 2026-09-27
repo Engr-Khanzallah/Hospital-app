@@ -14,7 +14,7 @@ A full-stack MERN application for hospital appointment booking with patient and 
 
 | Service | URL |
 |---------|-----|
-| 🌍 **Frontend (Netlify)** | https://medicare-hospital-app.netlify.app |
+| 🌍 **Frontend (Netlify)** | https://hospital-app-bookappointment.netlify.app/ |
 | ⚙️ **Backend API (Vercel)** | https://hospital-backend-app.vercel.app |
 | 📡 **API Health Check** | https://hospital-backend-app.vercel.app/ |
 
@@ -24,7 +24,7 @@ A full-stack MERN application for hospital appointment booking with patient and 
 
 | Field | Value |
 |-------|-------|
-| **URL** | https://medicare-hospital-app.netlify.app/login |
+| **URL** | https://hospital-app-bookappointment.netlify.app/ |
 | **Email** | admin@hospital.com |
 | **Password** | Admin@123456 |
 | **Role** | Administrator |
