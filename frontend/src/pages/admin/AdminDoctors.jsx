@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaUserMd, FaTimes, FaSave } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import API from '../../utils/api';
+import API, { getErrorMessage } from '../../utils/api';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -31,7 +31,7 @@ const AdminDoctors = () => {
     try {
       const { data } = await API.get('/doctors?limit=100');
       setDoctors(data.doctors);
-    } catch (err) { toast.error('Failed to load doctors'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to load doctors')); }
     finally { setLoading(false); }
   };
 
@@ -80,6 +80,11 @@ const AdminDoctors = () => {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => {
         if (k === 'availableSlots') fd.append(k, JSON.stringify(v));
+        else if (k === 'department') {
+          // When editing, `department` is a populated object ({_id, name, icon}); send only its id.
+          const departmentId = v && typeof v === 'object' ? v._id : v;
+          if (departmentId) fd.append(k, departmentId);
+        }
         else if (k !== '_id' && k !== '__v' && k !== 'createdAt' && k !== 'updatedAt' && k !== 'imagePublicId')
           fd.append(k, v);
       });
@@ -96,19 +101,19 @@ const AdminDoctors = () => {
       }
       setShowModal(false);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Operation failed');
+      toast.error(getErrorMessage(err, 'Operation failed'));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this doctor?')) return;
+    if (!window.confirm('Delete this doctor? Doctors with appointment history are archived (hidden) instead, so records are kept.')) return;
     try {
-      await API.delete(`/doctors/${id}`);
+      const { data } = await API.delete(`/doctors/${id}`);
       setDoctors(prev => prev.filter(d => d._id !== id));
-      toast.success('Doctor deleted');
-    } catch (err) { toast.error('Failed to delete'); }
+      toast.success(data?.message || 'Doctor deleted');
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to delete'), { duration: 6000 }); }
   };
 
   const filtered = doctors.filter(d =>

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaUserMd, FaCalendarAlt, FaClock, FaTimesCircle, FaMoneyBillWave } from 'react-icons/fa';
-import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import StatusBadge from '../../components/appointment/StatusBadge';
-import API from '../../utils/api';
+import API, { getErrorMessage } from '../../utils/api';
+import { formatAppointmentDate } from '../../utils/dates';
 
 const FILTERS = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
 
@@ -23,7 +23,7 @@ const MyAppointments = () => {
       const { data } = await API.get('/appointments/my');
       setAppointments(data.appointments);
     } catch (err) {
-      toast.error('Failed to load appointments');
+      toast.error(getErrorMessage(err, 'Failed to load appointments'));
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ const MyAppointments = () => {
       toast.success('Appointment cancelled');
       setAppointments(prev => prev.map(a => a._id === id ? { ...a, status: 'cancelled' } : a));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to cancel');
+      toast.error(getErrorMessage(err, 'Failed to cancel'));
     } finally {
       setCancellingId(null);
     }
@@ -104,7 +104,7 @@ const MyAppointments = () => {
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500 flex-wrap">
                         <span className="flex items-center gap-1">
                           <FaCalendarAlt size={10} className="text-primary-400" />
-                          {format(new Date(apt.appointmentDate), 'MMM d, yyyy')}
+                          {formatAppointmentDate(apt.appointmentDate, 'MMM d, yyyy')}
                         </span>
                         <span className="flex items-center gap-1">
                           <FaClock size={10} className="text-primary-400" />

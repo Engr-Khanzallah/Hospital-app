@@ -12,6 +12,7 @@ import Dashboard from './pages/patient/Dashboard';
 import MyAppointments from './pages/patient/MyAppointments';
 import Profile from './pages/patient/Profile';
 import BookAppointment from './pages/BookAppointment';
+import Assistant from './pages/Assistant';
 
 // Admin
 import AdminLayout from './components/admin/AdminLayout';
@@ -46,6 +47,7 @@ function App() {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="book/:doctorId" element={<ProtectedRoute><BookAppointment /></ProtectedRoute>} />
+        <Route path="assistant" element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
         {/* Patient Dashboard */}
         <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="my-appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />

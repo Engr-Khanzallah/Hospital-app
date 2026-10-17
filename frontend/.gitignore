@@ -45,3 +45,5 @@ coverage/
 # lock file (keep ONE only if using npm/yarn)
 # package-lock.json
 # yarn.lock
+# keep the example file tracked
+!.env.example
