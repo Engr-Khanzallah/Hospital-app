@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaClock, FaUserMd, FaMoneyBillWave, FaCheckCircle } from 'react-icons/fa';
 import { format, addDays, startOfToday, isToday } from 'date-fns';
 import toast from 'react-hot-toast';
-import API from '../utils/api';
+import API, { getErrorMessage } from '../utils/api';
+import { toDateKey, isSlotPast } from '../utils/dates';
 
 const BookAppointment = () => {
   const { doctorId } = useParams();
@@ -15,6 +16,7 @@ const BookAppointment = () => {
   const [selectedTime, setSelectedTime] = useState('');
   const [symptoms, setSymptoms] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: select date/time, 2: confirm
 
   useEffect(() => {
@@ -23,6 +25,27 @@ const BookAppointment = () => {
       .catch(() => navigate('/doctors'))
       .finally(() => setLoading(false));
   }, [doctorId]);
+
+  const loadBookedSlots = async (date) => {
+    if (!date) return;
+    setSlotsLoading(true);
+    try {
+      const { data } = await API.get('/appointments/booked-slots', {
+        params: { doctorId, date: toDateKey(date) }
+      });
+      setBookedSlots(data.bookedSlots || []);
+    } catch {
+      // Non-fatal: the server still rejects a taken slot when you confirm.
+      setBookedSlots([]);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setBookedSlots([]);
+    loadBookedSlots(selectedDate);
+  }, [selectedDate, doctorId]);
 
   // Generate next 14 available dates
   const getAvailableDates = () => {
@@ -68,14 +91,21 @@ const BookAppointment = () => {
     try {
       await API.post('/appointments', {
         doctorId,
-        appointmentDate: selectedDate.toISOString(),
+        // Calendar day (yyyy-MM-dd): independent of the visitor's timezone.
+        appointmentDate: toDateKey(selectedDate),
         timeSlot: selectedTime,
         symptoms
       });
       toast.success('Appointment booked successfully!');
       navigate('/my-appointments');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to book appointment');
+      toast.error(getErrorMessage(err, 'Failed to book appointment'));
+      if (err.response?.status === 409) {
+        // Someone took the slot (or you already have one): refresh and let the user pick again.
+        setSelectedTime('');
+        setStep(1);
+        loadBookedSlots(selectedDate);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -169,16 +199,27 @@ const BookAppointment = () => {
               <div className="card p-7">
                 <h2 className="text-lg font-bold font-display text-gray-900 mb-5 flex items-center gap-2">
                   <FaClock className="text-primary-500" /> Select Time Slot
+                  {slotsLoading && <span className="text-xs font-normal text-gray-400">Checking availability...</span>}
                 </h2>
+                {!slotsLoading && timeSlots.length > 0 && timeSlots.every(t => bookedSlots.includes(t) || isSlotPast(toDateKey(selectedDate), t)) && (
+                  <p className="text-sm text-amber-600 mb-4">No free slots left on this day. Please choose another date.</p>
+                )}
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                   {timeSlots.map((time, i) => {
                     const isSelected = selectedTime === time;
+                    const isBooked = bookedSlots.includes(time);
+                    const isPast = isSlotPast(toDateKey(selectedDate), time);
+                    const unavailable = isBooked || isPast;
                     return (
-                      <button key={i} onClick={() => setSelectedTime(time)}
+                      <button key={i} disabled={unavailable}
+                        title={isBooked ? 'Already booked' : isPast ? 'This time has passed' : undefined}
+                        onClick={() => setSelectedTime(time)}
                         className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                          isSelected
-                            ? 'bg-primary-600 text-white shadow-md shadow-primary-200'
-                            : 'bg-gray-50 hover:bg-primary-50 border border-gray-200 hover:border-primary-300 text-gray-700'
+                          unavailable
+                            ? 'bg-gray-100 text-gray-300 line-through cursor-not-allowed border border-gray-100'
+                            : isSelected
+                              ? 'bg-primary-600 text-white shadow-md shadow-primary-200'
+                              : 'bg-gray-50 hover:bg-primary-50 border border-gray-200 hover:border-primary-300 text-gray-700'
                         }`}>
                         {time}
                       </button>
@@ -202,6 +243,11 @@ const BookAppointment = () => {
 
             <button onClick={() => {
               if (!selectedDate || !selectedTime) { toast.error('Please select date and time'); return; }
+              if (bookedSlots.includes(selectedTime) || isSlotPast(toDateKey(selectedDate), selectedTime)) {
+                toast.error('That time slot is no longer available. Please pick another.');
+                setSelectedTime('');
+                return;
+              }
               setStep(2);
             }} className="btn-primary w-full py-4 text-base">
               Continue to Confirmation

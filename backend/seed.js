@@ -37,7 +37,6 @@ const seedDB = async () => {
 
     console.log('\n🏥 Seed complete!')
     console.log('Admin Email:', process.env.ADMIN_EMAIL)
-    console.log('Admin Password:', process.env.ADMIN_PASSWORD)
     process.exit(0)
   } catch (err) {
     console.error('Seed error:', err)

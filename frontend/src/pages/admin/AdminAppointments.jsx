@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaCheck, FaTimes, FaCalendarCheck, FaEye } from 'react-icons/fa';
-import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import StatusBadge from '../../components/appointment/StatusBadge';
-import API from '../../utils/api';
+import API, { getErrorMessage } from '../../utils/api';
+import { formatAppointmentDate } from '../../utils/dates';
 
 const STATUSES = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
 
@@ -29,7 +29,7 @@ const AdminAppointments = () => {
       setAppointments(data.appointments);
       setTotalPages(data.pages);
       setTotal(data.total);
-    } catch { toast.error('Failed to load appointments'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to load appointments')); }
     finally { setLoading(false); }
   };
 
@@ -39,7 +39,7 @@ const AdminAppointments = () => {
       const { data } = await API.put(`/appointments/${id}/status`, { status });
       setAppointments(prev => prev.map(a => a._id === id ? data.appointment : a));
       toast.success(`Appointment ${status}`);
-    } catch { toast.error('Failed to update'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to update')); }
     finally { setUpdating(null); }
   };
 
@@ -109,7 +109,7 @@ const AdminAppointments = () => {
                       <p className="text-xs text-gray-400">{apt.doctor?.specialty}</p>
                     </td>
                     <td className="px-5 py-4">
-                      <p className="text-sm text-gray-700">{format(new Date(apt.appointmentDate), 'MMM d, yyyy')}</p>
+                      <p className="text-sm text-gray-700">{formatAppointmentDate(apt.appointmentDate, 'MMM d, yyyy')}</p>
                       <p className="text-xs text-gray-400">{apt.timeSlot}</p>
                     </td>
                     <td className="px-5 py-4 text-sm font-medium text-gray-800">${apt.consultationFee}</td>
@@ -178,7 +178,7 @@ const AdminAppointments = () => {
                 ['Email', selectedApt.patient?.email],
                 ['Doctor', `Dr. ${selectedApt.doctor?.name}`],
                 ['Specialty', selectedApt.doctor?.specialty],
-                ['Date', format(new Date(selectedApt.appointmentDate), 'MMMM d, yyyy')],
+                ['Date', formatAppointmentDate(selectedApt.appointmentDate, 'MMMM d, yyyy')],
                 ['Time', selectedApt.timeSlot],
                 ['Fee', `$${selectedApt.consultationFee}`],
                 ['Status', selectedApt.status],

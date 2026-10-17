@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaEnvelope, FaEnvelopeOpen, FaTrash, FaTimes } from 'react-icons/fa';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import API from '../../utils/api';
+import API, { getErrorMessage } from '../../utils/api';
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -35,7 +35,7 @@ const AdminMessages = () => {
       setMessages(prev => prev.filter(m => m._id !== id));
       if (selected?._id === id) setSelected(null);
       toast.success('Message deleted');
-    } catch { toast.error('Failed to delete'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to delete')); }
   };
 
   const unread = messages.filter(m => !m.isRead).length;

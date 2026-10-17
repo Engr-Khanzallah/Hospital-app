@@ -36,6 +36,7 @@ const Navbar = () => {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/doctors', label: 'Doctors' },
+    { to: '/assistant', label: 'AI Assistant' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' }
   ]

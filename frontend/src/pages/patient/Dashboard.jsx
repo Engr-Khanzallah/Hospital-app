@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaCalendarCheck, FaUserMd, FaClock, FaTimesCircle, FaArrowRight } from 'react-icons/fa';
-import { format } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
 import StatusBadge from '../../components/appointment/StatusBadge';
 import API from '../../utils/api';
+import { formatAppointmentDate } from '../../utils/dates';
 
 const StatCard = ({ icon, label, value, color, to }) => (
   <Link to={to} className="card p-6 flex items-center gap-5 hover:-translate-y-0.5 transition-all duration-300">
@@ -99,7 +99,7 @@ const Dashboard = () => {
                         <p className="text-xs text-gray-500">{apt.doctor?.specialty}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-xs font-medium text-gray-700">{format(new Date(apt.appointmentDate), 'MMM d, yyyy')}</p>
+                        <p className="text-xs font-medium text-gray-700">{formatAppointmentDate(apt.appointmentDate, 'MMM d, yyyy')}</p>
                         <p className="text-xs text-gray-500">{apt.timeSlot}</p>
                       </div>
                       <StatusBadge status={apt.status} />

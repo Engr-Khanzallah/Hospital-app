@@ -34,3 +34,6 @@ Thumbs.db
 .vscode/
 .idea/
 .vercel
+
+# Migration backups (contain appointment ids)
+migration-backup-*.json

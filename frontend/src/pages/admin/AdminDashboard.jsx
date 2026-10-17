@@ -4,9 +4,9 @@ import {
   FaUsers, FaUserMd, FaCalendarCheck, FaMoneyBillWave,
   FaHourglassHalf, FaCheckCircle, FaTimesCircle, FaEnvelope, FaArrowRight
 } from 'react-icons/fa';
-import { format } from 'date-fns';
 import StatusBadge from '../../components/appointment/StatusBadge';
 import API from '../../utils/api';
+import { formatAppointmentDate } from '../../utils/dates';
 
 const StatCard = ({ icon, label, value, color, sub }) => (
   <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-xs font-medium text-gray-600">
-                      {format(new Date(apt.appointmentDate), 'MMM d, yyyy')}
+                      {formatAppointmentDate(apt.appointmentDate, 'MMM d, yyyy')}
                     </p>
                     <p className="text-xs text-gray-400">{apt.timeSlot}</p>
                   </div>

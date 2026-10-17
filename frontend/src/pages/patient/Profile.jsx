@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaUser, FaLock, FaSave, FaCheckCircle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
-import API from '../../utils/api';
+import API, { getErrorMessage } from '../../utils/api';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -46,7 +46,7 @@ const Profile = () => {
       updateUser(data.user);
       toast.success('Profile updated successfully');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Update failed');
+      toast.error(getErrorMessage(err, 'Update failed'));
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ const Profile = () => {
       toast.success('Password changed successfully');
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to change password');
+      toast.error(getErrorMessage(err, 'Failed to change password'));
     } finally {
       setLoading(false);
     }

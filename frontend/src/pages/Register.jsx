@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaStethoscope, FaEye, FaEyeSlash } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { getErrorMessage } from '../utils/api';
 
 const Register = () => {
   const { register } = useAuth();
@@ -23,7 +24,7 @@ const Register = () => {
       toast.success(`Welcome, ${user.name.split(' ')[0]}!`);
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+      toast.error(getErrorMessage(err, 'Registration failed'));
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import API from '../utils/api';
+import API, { getErrorMessage } from '../utils/api';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -17,7 +17,7 @@ const Contact = () => {
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setForm({ name: '', email: '', phone: '', subject: '', message: '' });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send message');
+      toast.error(getErrorMessage(err, 'Failed to send message'));
     } finally {
       setLoading(false);
     }

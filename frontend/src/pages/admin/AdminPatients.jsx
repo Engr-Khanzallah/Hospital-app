@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaSearch, FaTrash, FaUsers, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import API from '../../utils/api';
+import API, { getErrorMessage } from '../../utils/api';
 
 const AdminPatients = () => {
   const [patients, setPatients] = useState([]);
@@ -23,7 +23,7 @@ const AdminPatients = () => {
       setPatients(data.users);
       setTotalPages(data.pages);
       setTotal(data.total);
-    } catch { toast.error('Failed to load patients'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to load patients')); }
     finally { setLoading(false); }
   };
 
@@ -33,7 +33,7 @@ const AdminPatients = () => {
       await API.delete(`/users/${id}`);
       setPatients(prev => prev.filter(p => p._id !== id));
       toast.success('Patient deleted');
-    } catch { toast.error('Failed to delete'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to delete'), { duration: 6000 }); }
   };
 
   const handleToggleStatus = async (id) => {
@@ -41,7 +41,7 @@ const AdminPatients = () => {
       const { data } = await API.put(`/users/${id}/toggle-status`);
       setPatients(prev => prev.map(p => p._id === id ? data.user : p));
       toast.success('Status updated');
-    } catch { toast.error('Failed to update status'); }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to update status')); }
   };
 
   return (
