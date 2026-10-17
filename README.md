@@ -1,325 +1,281 @@
-# 🏥 MediCare - Hospital Appointment Booking System
+# 🏥 MediCare: Hospital Appointment Booking System
 
-A full-stack MERN application for hospital appointment booking with patient and admin dashboards and a free-tier AI health assistant.
+Book a doctor in a few clicks, manage everything from an admin panel, and get help from a friendly AI health assistant.
 
-![MediCare](https://img.shields.io/badge/MediCare-Hospital%20App-blue?style=for-the-badge&logo=react)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=for-the-badge&logo=mongodb)
-![Express](https://img.shields.io/badge/Express.js-Backend-black?style=for-the-badge&logo=express)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-Runtime-339933?style=for-the-badge&logo=node.js)
+![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![Node](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Styling-Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Google%20Gemini%20(free%20tier)-4285F4?style=for-the-badge&logo=google&logoColor=white)
 
 ---
 
 ## 🌐 Live Demo
 
-| Service | URL |
-|---------|-----|
-| 🌍 **Frontend (Netlify)** | https://hospital-app-bookappointment.netlify.app/ |
-| ⚙️ **Backend API (Vercel)** | https://hospital-backend-app.vercel.app |
-| 📡 **API Health Check** | https://hospital-backend-app.vercel.app/ |
+| What | Link |
+|------|------|
+| 🌍 Website (Netlify) | https://hospital-app-bookappointment.netlify.app/ |
+| ⚙️ API (Vercel) | https://hospital-backend-app.vercel.app/ |
+
+> Open the API link and you should see `Hospital API Running`. That means the backend is healthy.
 
 ---
 
-## 🔐 Admin Account
+## ✨ What can it do?
 
-There is **no default or published admin password**. The administrator is created by the seed script
-(`node seed.js`) from the `ADMIN_EMAIL` and `ADMIN_PASSWORD` values in your own backend `.env` file.
-Choose a strong password and never commit it. After logging in, the admin is redirected to `/admin`.
+### 👤 For patients
+- Create an account and log in securely
+- Search doctors by name or specialty and read their profiles and weekly schedules
+- Book an appointment: **taken and already-passed time slots are greyed out**
+- See, track and cancel your appointments (Pending, Confirmed, Completed, Cancelled)
+- Edit your profile and change your password
+- Chat with the **AI Assistant** for general health information and help finding the right doctor
 
-## 👤 Patient Registration
-
-Patients register on the frontend at `/register`.
-
----
-
-## ✨ Features
-
-### Patient Side
-- ✅ Register & Login with JWT Authentication
-- ✅ Browse doctors with search & filter by specialty
-- ✅ View detailed doctor profiles with weekly schedule
-- ✅ Book appointments: only real free slots are offered, taken or already-passed slots are disabled
-- ✅ View & cancel appointments, status badges (Pending / Confirmed / Completed / Cancelled)
-- ✅ Edit personal profile & change password
-- ✅ **AI Assistant** (`/assistant`): general health information and help finding a doctor
-
-### Admin Panel
-- ✅ Dashboard with analytics (total patients, doctors, revenue)
-- ✅ Add / Edit / Archive doctors with Cloudinary image upload
-- ✅ Weekly schedule management per doctor
-- ✅ Manage appointments (Confirm / Complete / Cancel) with enforced status flow
-- ✅ Patient list with activate / deactivate / delete (patients with history can only be deactivated)
-- ✅ Contact message inbox with read/unread tracking
-
-### Booking rules enforced by the server
-- The doctor must exist, be active and be accepting appointments.
-- The date must not be in the past (and not more than `BOOKING_MAX_ADVANCE_DAYS` ahead).
-- The time slot must be one of the doctor's real slots for that weekday, and not already over today.
-- One active appointment per doctor + day + slot. This is guaranteed by a **partial unique index** in MongoDB,
-  so two people clicking at the same instant cannot both succeed. The loser gets a clear "slot already booked" message.
-- Status flow: `pending → confirmed → completed`, and `pending/confirmed → cancelled`. Completed and cancelled are final.
-- Dates are **calendar days at the hospital** (`HOSPITAL_TIMEZONE`), so every visitor sees the same day.
-
-### Data integrity
-- A patient who has appointments cannot be deleted (deactivate instead).
-- A doctor with upcoming appointments cannot be removed. A doctor with past appointments is **archived** (hidden, history kept); a doctor with no appointments is deleted together with the Cloudinary image.
-- A department that still has doctors cannot be deleted.
+### 🛠️ For the admin
+- Dashboard with totals for patients, doctors, appointments and revenue
+- Add, edit and archive doctors (with photo upload)
+- Set each doctor's weekly working hours
+- Confirm, complete or cancel appointments
+- Activate or deactivate patients
+- Read messages sent from the contact form
 
 ---
 
-## 🤖 AI Assistant
+## 🤖 The AI Assistant
 
-`POST /api/ai/chat` (login required) calls Google Gemini using the **free tier**. Billing is never required or enabled.
+Open **AI Assistant** in the menu (you need to be logged in).
 
-- Body: `{ "message": "text up to 2000 characters", "history": [{ "role": "user" | "assistant", "content": "..." }] }` (history optional, last 6 turns used)
-- Response: `{ "success": true, "reply": "plain text", "safety"?: "emergency" | "self_harm", "redacted"?: true }`
-- The assistant only shares general information. It does not diagnose, prescribe, invent doctors or fees, or claim to book anything. It only knows the public doctor directory (name, specialty, fee, schedule). **No patient records or accounts are sent to Gemini.**
-- Before anything is sent, e-mail addresses and long numbers (phone / ID / card style) are removed.
-- Emergency or self-harm wording gets an immediate fixed answer telling the user to contact local emergency services, without calling Gemini.
-- Protected by per-user (per minute and per day) and global per-minute limits to protect the free quota.
-- The model is set with `GEMINI_MODEL` (default `gemini-3.1-flash-lite`). If the configured model has been retired (HTTP 404), the server retries once with the default model.
-- The API key stays on the server. Answers are shown in the browser as plain text (no HTML rendering).
+**It can:** explain health topics in simple language, suggest which type of doctor to see, and recommend doctors **from your own database**.
 
-> Free-tier note: Google may use free-tier prompts to improve its products, so users are told not to type personal details.
+**It will not:** diagnose, prescribe medicine, invent doctors or fees, or book appointments for you.
 
----
+**Built-in safety**
+- If someone writes about an emergency (for example chest pain or self-harm), the app answers immediately with a fixed message telling them to contact local emergency services. The AI is not even called.
+- Email addresses and long numbers are removed from messages **before** anything is sent to Gemini.
+- Only public doctor information (name, specialty, fee, schedule) is shared with the AI. No patient records.
+- Answers appear as plain text, never as HTML.
+- Per-user and global rate limits protect the free Gemini quota.
 
-## 🚀 Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React.js + Vite + Tailwind CSS |
-| **Backend** | Node.js + Express.js |
-| **Database** | MongoDB Atlas |
-| **Authentication** | JWT (JSON Web Tokens) |
-| **Image Upload** | Cloudinary |
-| **AI** | Google Gemini (free tier) via `@google/genai` |
-| **Frontend Hosting** | Netlify |
-| **Backend Hosting** | Vercel |
+> ⚠️ This assistant gives general information only and can make mistakes. It is not a substitute for a real doctor.
 
 ---
 
-## 📁 Project Structure
+## 🚀 Quick Start (run it on your computer)
 
-```
-hospital-app/
-├── backend/
-│   ├── app.js                 # builds the Express app (used by server.js and the tests)
-│   ├── server.js              # entry point (local server / Vercel export)
-│   ├── config/cloudinary.js
-│   ├── controllers/           # admin, appointment, auth, contact, department, doctor, user
-│   ├── middleware/            # auth, rateLimit, errorHandler
-│   ├── models/                # Appointment, ContactMessage, Department, Doctor, User
-│   ├── routes/                # incl. aiRoutes.js
-│   ├── services/              # aiService.js (Gemini), aiGuard.js (privacy + safety)
-│   ├── utils/                 # validate, scheduling (timezone + slots), httpError, appointmentMigration
-│   ├── scripts/               # migrate-appointments.js, test-booking-concurrency.mjs
-│   ├── tests/                 # node:test suites (npm test)
-│   ├── .env.example
-│   ├── seed.js
-│   └── vercel.json
-│
-└── frontend/
-    ├── public/_redirects
-    ├── .env.example
-    └── src/
-        ├── components/        # admin, appointment, common, doctor
-        ├── context/           # AuthContext, AppContext
-        ├── pages/             # Home, Doctors, DoctorDetail, BookAppointment, Assistant, ... admin/, patient/
-        └── utils/             # api.js, dates.js
-```
+### What you need
+- [Node.js](https://nodejs.org/) 18 or newer
+- A free [MongoDB Atlas](https://www.mongodb.com/atlas) database
+- A free [Cloudinary](https://cloudinary.com/) account (for doctor photos)
+- *(Optional)* A free [Gemini API key](https://aistudio.google.com/apikey) for the AI Assistant
 
----
-
-## ⚙️ Local Setup Instructions
-
-### Prerequisites
-- Node.js v18+ (v22 recommended)
-- MongoDB Atlas account (free)
-- Cloudinary account (free)
-- Optional: free Gemini API key from https://aistudio.google.com/apikey
-
-### Step 1 - Clone the repository
-
+### 1️⃣ Get the code
 ```bash
 git clone https://github.com/Engr-Khanzallah/Hospital-app.git
 cd Hospital-app
 ```
 
-### Step 2 - Backend
-
+### 2️⃣ Start the backend
 ```bash
 cd backend
 npm install
-cp .env.example .env      # Windows: copy .env.example .env
 ```
-
-Open `backend/.env` and fill in your real values (every variable is explained in `.env.example`).
-The required ones are `MONGODB_URI`, `JWT_SECRET`, the three `CLOUDINARY_*` values, `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
-`GEMINI_API_KEY` is only needed for the AI assistant.
-
-Seed the database (creates the admin account and departments):
+Create your settings file. Copy `.env.example` to a new file named `.env`:
 
 ```bash
-node seed.js
+# macOS / Linux
+cp .env.example .env
+# Windows (PowerShell)
+copy .env.example .env
 ```
-
-Start the backend (http://localhost:5000):
+Open `.env` and fill in your real values (see the table below). Then:
 
 ```bash
-npm run dev
+node seed.js     # creates the admin account and departments (run once)
+npm run dev      # backend runs at http://localhost:5000
 ```
+You should see `MongoDB connected` and `Server running on port 5000`.
 
-### Step 3 - Frontend
-
+### 3️⃣ Start the frontend
+Open a **second** terminal:
 ```bash
-cd ../frontend
+cd frontend
 npm install
-cp .env.example .env      # Windows: copy .env.example .env
-npm run dev
+```
+Create `frontend/.env` with:
+```
+VITE_API_URL=http://localhost:5000/api
+```
+Then:
+```bash
+npm run dev      # website runs at http://localhost:5173
 ```
 
-Frontend runs on http://localhost:5173 and talks to `VITE_API_URL` (default `http://localhost:5000/api`).
+🎉 Open http://localhost:5173 and you are in.
 
-### Existing database? Run the one-off migration
+---
 
-If your database already contains appointments, run this **once** before relying on the new duplicate-booking protection.
-Take a MongoDB backup first (Atlas > Backup, or `mongodump`).
+## 🔑 Settings (environment variables)
+
+Settings live in `backend/.env`. **Never upload this file to GitHub.** It is already ignored by git.
+
+| Setting | Needed? | What it is |
+|---------|---------|-----------|
+| `MONGODB_URI` | ✅ Yes | Your MongoDB connection string |
+| `JWT_SECRET` | ✅ Yes | A long random secret used to sign logins |
+| `CLOUDINARY_CLOUD_NAME` `CLOUDINARY_API_KEY` `CLOUDINARY_API_SECRET` | ✅ Yes | Cloudinary details for doctor photos |
+| `ADMIN_EMAIL` `ADMIN_PASSWORD` | For `seed.js` | The first admin account. Choose a strong password |
+| `GEMINI_API_KEY` | For the AI | Your free Gemini key |
+| `GEMINI_MODEL` | Optional | Defaults to `gemini-3.1-flash-lite` |
+| `CORS_ORIGINS` | Recommended in production | Your website address(es), separated by commas. Leave empty and any website may call the API |
+| `HOSPITAL_TIMEZONE` | Optional | Hospital timezone. Default `Asia/Karachi` |
+| `BOOKING_MAX_ADVANCE_DAYS` | Optional | How many days ahead patients can book (default 60) |
+
+The frontend only needs `VITE_API_URL`, the backend address followed by `/api`.
+
+`backend/.env.example` lists every setting (including the optional rate limits) with explanations.
+
+---
+
+## 🔐 How do I log in as admin?
+
+There is **no separate admin login page**.
+
+1. Go to the normal **Login** page.
+2. Enter the admin email and password you set in `ADMIN_EMAIL` and `ADMIN_PASSWORD` when you ran `node seed.js`.
+3. You are sent to the admin panel automatically. Later, click your **name in the top-right corner** and choose **Admin Panel**.
+
+There is no default or published password. You choose it. To change it later, open the **Change Password** tab on the `/profile` page.
+
+---
+
+## 📅 How booking works
+
+The server checks every booking, so nobody can cheat from the browser:
+
+- The doctor must exist and be accepting appointments
+- The date cannot be in the past (and not too far ahead)
+- The time must be one of the doctor's real slots for that weekday
+- **One active appointment per doctor, day and time.** MongoDB itself enforces this, so two people clicking at the same moment cannot both win
+- Status flow: `Pending → Confirmed → Completed`, or cancelled along the way. Completed and cancelled are final
+- Dates are **calendar days at the hospital**, so everyone sees the same day, wherever they are
+
+**Safe deleting:** a patient with appointments cannot be deleted (deactivate instead). A doctor with past appointments is **archived**, not erased, and a doctor with upcoming appointments cannot be removed until those are handled. History is never silently lost.
+
+---
+
+## 🧪 Tests
 
 ```bash
 cd backend
-npm run migrate:appointments               # DRY RUN: only prints a report
-npm run migrate:appointments -- --apply    # writes a JSON backup first, then applies
+npm test
 ```
+Runs 66 automated tests (login and permissions, booking rules, double-booking, status changes, safe deleting, rate limits, CORS, and the AI endpoint). No database or API key is needed.
 
-It normalizes appointment dates to the hospital calendar day, marks active appointments as protected, and builds the unique index.
-It never deletes or cancels anything. If two active bookings already collide on one slot, they are listed for you to resolve (for example by cancelling one in the admin panel).
-
----
-
-## 🧪 Testing
-
+For a real double-booking test against a **throw-away** MongoDB (its name must contain `test`):
 ```bash
-cd backend
-npm test                      # 66 automated tests, no database or API key needed
-npm run test:concurrency      # needs a throw-away MongoDB: set MONGODB_URI_TEST (name must contain "test")
+# set MONGODB_URI_TEST in .env first
+npm run test:concurrency
 ```
 
-`npm test` covers validation, authentication/authorization, booking rules, duplicate-booking handling, status transitions,
-deletion integrity, rate limiting, CORS and the AI endpoint (with the AI provider stubbed). `npm run test:concurrency` fires
-10 simultaneous bookings of one slot against a real MongoDB and expects exactly one to succeed.
+### Already have appointments in your database?
+Run this once, **after taking a backup**:
+```bash
+npm run migrate:appointments               # only shows a report, changes nothing
+npm run migrate:appointments -- --apply    # saves a backup file, then applies
+```
+It never deletes or cancels anything.
 
 ---
 
-## 🌐 API Endpoints
+## 📁 Project structure
 
-### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Patient register |
-| POST | `/api/auth/login` | User login |
-| POST | `/api/auth/admin-login` | Admin login |
-| GET | `/api/auth/me` | Get current user |
-
-### Doctors
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/doctors` | Get all doctors | No |
-| GET | `/api/doctors/featured` | Featured doctors | No |
-| GET | `/api/doctors/:id` | Single doctor | No |
-| POST | `/api/doctors` | Create doctor | Admin |
-| PUT | `/api/doctors/:id` | Update doctor | Admin |
-| DELETE | `/api/doctors/:id` | Delete or archive doctor | Admin |
-
-### Appointments
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/appointments` | Book appointment (`appointmentDate` as `yyyy-MM-dd`) | Patient |
-| GET | `/api/appointments/booked-slots?doctorId=&date=` | Taken slots for a doctor and day | Logged in |
-| GET | `/api/appointments/my` | My appointments | Patient |
-| PUT | `/api/appointments/:id/cancel` | Cancel | Patient |
-| GET | `/api/appointments` | All appointments | Admin |
-| PUT | `/api/appointments/:id/status` | Update status | Admin |
-
-### Users
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/users/profile` | Get profile | Patient |
-| PUT | `/api/users/profile` | Update profile | Patient |
-| PUT | `/api/users/change-password` | Change password | Patient |
-| GET | `/api/users` | All patients | Admin |
-| DELETE | `/api/users/:id` | Delete patient (only without appointments) | Admin |
-| PUT | `/api/users/:id/toggle-status` | Activate / deactivate | Admin |
-
-### AI
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/ai/chat` | Ask the AI assistant | Logged in |
-
----
-
-## 🚀 Deployment
-
-### Backend - Vercel
-
-1. Connect the GitHub repo to Vercel.
-2. Set **Root Directory** to `backend` (`vercel.json` already points to `server.js`).
-3. Add the environment variables listed below in the Vercel dashboard.
-4. Deploy, then open the API health-check URL.
-
-### Frontend - Netlify
-
-1. Connect the GitHub repo to Netlify.
-2. **Base directory** `frontend`, **Build command** `npm run build`, **Publish directory** `frontend/dist`.
-3. Add `VITE_API_URL` = your backend URL followed by `/api`.
-4. Deploy. `public/_redirects` makes client-side routes such as `/assistant` work after a refresh.
-
-### After deploying
-- Set `CORS_ORIGINS` on the backend to your Netlify URL (and any custom domain).
-- Rate limits are kept in memory per server instance. On Vercel each warm instance has its own counters, so they are a best-effort brake, not a hard global limit.
-- Test it: register, log in, book an appointment, open `/assistant`.
-
----
-
-## 📦 Environment Variables
-
-See `backend/.env.example` and `frontend/.env.example` for explanations and defaults. Never commit real `.env` files.
-
-### Backend
 ```
-Required : MONGODB_URI, JWT_SECRET, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
-Seeding  : ADMIN_EMAIL, ADMIN_PASSWORD
-Optional : PORT, NODE_ENV, JWT_EXPIRE, CORS_ORIGINS, HOSPITAL_TIMEZONE, BOOKING_MAX_ADVANCE_DAYS
-AI       : GEMINI_API_KEY, GEMINI_MODEL, AI_USER_RPM, AI_USER_DAILY, AI_GLOBAL_RPM, AI_TIMEOUT_MS, AI_DOCTOR_LIMIT, AI_DIRECTORY_TTL_MS
-Limits   : RATE_LOGIN_MAX, RATE_REGISTER_MAX, RATE_CONTACT_MAX, RATE_BOOKING_MAX
-Testing  : MONGODB_URI_TEST
-```
-
-### Frontend
-```
-VITE_API_URL, VITE_HOSPITAL_TIMEZONE (optional)
+Hospital-app/
+├── backend/
+│   ├── app.js               # builds the Express app
+│   ├── server.js            # starts the server
+│   ├── controllers/         # logic for auth, doctors, appointments, users...
+│   ├── middleware/          # login check, rate limiting, error handling
+│   ├── models/              # database models
+│   ├── routes/              # API routes (including the AI route)
+│   ├── services/            # Gemini AI + privacy and safety filters
+│   ├── utils/               # validation, dates and time slots
+│   ├── scripts/             # migration and real-database test
+│   ├── tests/               # automated tests
+│   └── seed.js              # creates the admin account and departments
+└── frontend/
+    └── src/
+        ├── pages/           # Home, Doctors, Booking, Assistant, admin and patient pages
+        ├── components/      # reusable pieces
+        ├── context/         # login state
+        └── utils/           # API client and date helpers
 ```
 
 ---
 
-## 🔒 Security Notes
+## 🌐 API at a glance
 
-- Passwords are hashed with bcrypt; the JWT format is unchanged. Deleted or deactivated users are rejected on every request.
-- Inputs are validated and request bodies are never spread into database updates; only allowlisted fields are saved.
-- Login, register, contact, booking and AI chat are rate limited. CORS can be restricted with `CORS_ORIGINS`.
-- If a secret was ever shared or published (screenshots, zip files, README), rotate it: MongoDB user password, `JWT_SECRET`, Cloudinary API secret, Gemini key and the admin password.
+| Area | Examples |
+|------|----------|
+| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` |
+| Doctors | `GET /api/doctors`, `GET /api/doctors/:id` (admin: create, update, delete) |
+| Appointments | `POST /api/appointments`, `GET /api/appointments/my`, `GET /api/appointments/booked-slots` |
+| Users | `GET/PUT /api/users/profile`, `PUT /api/users/change-password` |
+| AI | `POST /api/ai/chat` (login required) |
+
+When booking, send `appointmentDate` as `yyyy-MM-dd`, for example `2026-11-03`.
 
 ---
 
-## 👨‍💻 Developer
+## ☁️ Deploying
+
+**Backend on Vercel**
+1. Import the GitHub repository and set **Root Directory** to `backend`.
+2. Add the settings from the table above under *Settings → Environment Variables*.
+3. Deploy, then open the API link. You should see `Hospital API Running`.
+
+**Frontend on Netlify**
+1. Import the same repository. Base directory `frontend`, build command `npm run build`, publish directory `frontend/dist`.
+2. Add `VITE_API_URL` = your Vercel backend address + `/api`.
+3. Deploy. The included `_redirects` file makes pages like `/assistant` work after a refresh.
+
+**After deploying:** set `CORS_ORIGINS` on Vercel to your Netlify address, then test login, a booking and the AI Assistant.
+
+---
+
+## 🩹 Something not working?
+
+| What you see | Most likely reason | What to do |
+|--------------|--------------------|-----------|
+| `MONGODB_URI environment variable is missing` | The backend can't find `.env` | Make sure `backend/.env` exists and is filled in |
+| "Cannot reach the server" in the browser | The backend is not running, or `VITE_API_URL` points to the wrong place | Start the backend and check `VITE_API_URL`. Restart `npm run dev` after changing `.env` |
+| AI says "could not answer right now" | Problem with the Gemini key or model | Check `GEMINI_API_KEY`. The backend terminal prints the exact reason |
+| AI request gets a 404 | Frontend is calling an older backend | Check `VITE_API_URL` and deploy the latest backend |
+| "Too many requests" | You hit a rate limit | Wait a minute and try again |
+| Changed `.env` but nothing happened | Servers read `.env` only when they start | Stop and start them again |
+
+---
+
+## 🔒 Security notes
+
+- Passwords are hashed. Deactivated or deleted users are rejected on every request.
+- Inputs are validated, and only allowed fields are ever saved.
+- Login, sign-up, contact, booking and AI chat are rate limited. These limits are kept in server memory, so on Vercel they are a best-effort brake rather than a hard global limit.
+- The Gemini free tier may use prompts to improve Google's products, so please do not type personal details into the assistant.
+- If a secret is ever shared or published, replace it: your MongoDB password, `JWT_SECRET`, Cloudinary secret, Gemini key and admin password.
+
+---
+
+## 👨‍💻 Author
 
 **Engr. Khanzallah**
-
-- GitHub: [@Engr-Khanzallah](https://github.com/Engr-Khanzallah)
-- Project: [Hospital-app](https://github.com/Engr-Khanzallah/Hospital-app)
+GitHub: [@Engr-Khanzallah](https://github.com/Engr-Khanzallah)
+Project: [Hospital-app](https://github.com/Engr-Khanzallah/Hospital-app)
 
 ---
 
 ## 📄 License
 
-This project is open source and available for portfolio and educational purposes.
+Open source for portfolio and learning purposes.
+
+<p align="center">Made with ❤️ for better healthcare access</p>
