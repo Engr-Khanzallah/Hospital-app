@@ -99,7 +99,7 @@ const Navbar = () => {
                       <p className="text-xs text-gray-400">{user.email}</p>
                     </div>
                     {isAdmin ? (
-                                            <>
+                        <>
                         <Link to="/admin" onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
                           <FaTachometerAlt className="text-primary-400" /> Admin Panel
