@@ -99,10 +99,16 @@ const Navbar = () => {
                       <p className="text-xs text-gray-400">{user.email}</p>
                     </div>
                     {isAdmin ? (
-                      <Link to="/admin" onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
-                        <FaTachometerAlt className="text-primary-400" /> Admin Panel
-                      </Link>
+                                            <>
+                        <Link to="/admin" onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                          <FaTachometerAlt className="text-primary-400" /> Admin Panel
+                        </Link>
+                        <Link to="/profile" onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                          <FaUser className="text-primary-400" /> Profile & Password
+                        </Link>
+                      </>
                     ) : (
                       <>
                         <Link to="/dashboard" onClick={() => setDropdownOpen(false)}
